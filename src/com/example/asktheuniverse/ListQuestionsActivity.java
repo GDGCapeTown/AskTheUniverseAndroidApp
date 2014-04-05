@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+
 import com.appspot.asktheuniverseaquestion.questionService.QuestionService;
 import com.appspot.asktheuniverseaquestion.questionService.model.AskTheUniverseAQuestionQuestion;
 import com.appspot.asktheuniverseaquestion.questionService.model.AskTheUniverseAQuestionQuestionCollection;
@@ -25,9 +26,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+
 public class ListQuestionsActivity extends Activity {
 	private QuestionsDataAdapter mListAdapter;
 	ListView listView = null;
+	private Application app = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,23 +40,25 @@ public class ListQuestionsActivity extends Activity {
 		setContentView(R.layout.activity_list_questions);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
+		app = (Application) this.getApplicationContext();
+				
 		listView = (ListView) findViewById(R.id.questions_list_view);
-		mListAdapter = new QuestionsDataAdapter((Application) this.getApplicationContext());
+		mListAdapter = new QuestionsDataAdapter(app);
 		listView.setAdapter(mListAdapter);
 	}
-	
+
 	
 	@Override
 	protected void onStart(){
 		super.onStart();
 		
 		Log.d("DEBUG", "onstart of ListQuestionActivity called");
-		AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> getAndDisplayQuestions =
+		final AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> getAndDisplayQuestions =
 	            new AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> () {
 	                @Override
 	                protected AskTheUniverseAQuestionQuestionCollection doInBackground(Integer... integers) {
 	                    // Retrieve service handle.
-	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
+	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle(app.credential);
 
 	                    try {
 	                    	Log.d("DEBUG", "run async api call");
@@ -88,7 +95,6 @@ public class ListQuestionsActivity extends Activity {
 			}
 		});
 		
-		Log.d("DEBUG","oncreate.");
 		getAndDisplayQuestions.execute();
 	}
 

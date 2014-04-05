@@ -24,11 +24,14 @@ public class AnswerQuestionActivity extends Activity {
 
 	private ProgressDialog progress;
 	private Long questionId = null;
+	private Application app = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_answer_question);
+		
+		app = (Application) this.getApplicationContext();
 		
 		Bundle bundle = getIntent().getExtras();
 		TextView questionView = (TextView) findViewById(R.id.answer_question_textview);
@@ -50,7 +53,7 @@ public class AnswerQuestionActivity extends Activity {
 	                @Override
 	                protected Boolean doInBackground(String... answer) {
 	                    // Retrieve service handle.
-	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
+	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle(app.credential);
 
 	                    try {
 	                    	Log.d("DEBUG", "run async api call");

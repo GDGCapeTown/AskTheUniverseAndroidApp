@@ -22,11 +22,14 @@ import android.widget.Toast;
 public class AskQuestionActivity extends Activity {
 
 	private ProgressDialog progress;
+	private Application app = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ask_question);
+		
+		app = (Application) this.getApplicationContext();
 	}
 	
 	public void submitQuestion(View v){
@@ -43,7 +46,7 @@ public class AskQuestionActivity extends Activity {
 	                @Override
 	                protected Boolean doInBackground(String... question) {
 	                    // Retrieve service handle.
-	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
+	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle(app.credential);
 
 	                    try {
 	                    	Log.d("DEBUG", "run async api call");
