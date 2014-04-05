@@ -17,38 +17,46 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class AskQuestionActivity extends Activity {
+public class AnswerQuestionActivity extends Activity {
 
 	private ProgressDialog progress;
+	private Long questionId = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_ask_question);
+		setContentView(R.layout.activity_answer_question);
+		
+		Bundle bundle = getIntent().getExtras();
+		TextView questionView = (TextView) findViewById(R.id.answer_question_textview);
+		questionView.setText(bundle.getString("questionText"));
+		questionId = bundle.getLong("questionId");
 	}
-	
-	public void submitQuestion(View v){
+
+	public void answerQuestion(View v){
 		progress = new ProgressDialog(this);
 		progress.setTitle("Plaese wait");
-		progress.setMessage("Submitting your question");
+		progress.setMessage("Submitting your answer");
 		progress.setCancelable(false);
 		
-		EditText questionEditText = (EditText) findViewById(R.id.ask_question_textview);
-		String question = questionEditText.getText().toString();
+		EditText answerEditText = (EditText) findViewById(R.id.answer_question_edittext);
+		String answer = answerEditText.getText().toString();
 		
-		AsyncTask<String, Void, Boolean> submitQuestionToService =
+		AsyncTask<String, Void, Boolean> submitAnswerToService =
 	            new AsyncTask<String, Void, Boolean> () {
 	                @Override
-	                protected Boolean doInBackground(String... question) {
+	                protected Boolean doInBackground(String... answer) {
 	                    // Retrieve service handle.
 	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
 
 	                    try {
 	                    	Log.d("DEBUG", "run async api call");
+	                    	Log.d("DEBUG", "answer for question with id: " + questionId);
 	                    	QuestionService.QuestionServiceOperations getQuestionsCommand = apiServiceHandle.questionService();
-	                    	AskTheUniverseAQuestionQuestion result = getQuestionsCommand.askQuestion(question[0]).execute();
+	                    	AskTheUniverseAQuestionQuestion result = getQuestionsCommand.sendAnswer(questionId, answer[0]).execute();
 	                        return true;
 	                    } catch (IOException e) {
 	                    	e.printStackTrace();
@@ -65,18 +73,18 @@ public class AskQuestionActivity extends Activity {
 	            };
 	            
 		progress.show();
-		submitQuestionToService.execute(question);
+		submitAnswerToService.execute(answer);
 	}
 	
     private void handleResult(Boolean sent){
     	progress.cancel();
     	if (sent == true){
-    		Toast t = Toast.makeText(this, "Submit successful", Toast.LENGTH_LONG);
+    		Toast t = Toast.makeText(this, "Answer successful", Toast.LENGTH_LONG);
     		t.show();
     		this.finish();
     	}
     	else{
-    		Toast t = Toast.makeText(this, "Submit failed. Try again.", Toast.LENGTH_LONG);
+    		Toast t = Toast.makeText(this, "Answer failed. Try again.", Toast.LENGTH_LONG);
     		t.show();
     	}
     }

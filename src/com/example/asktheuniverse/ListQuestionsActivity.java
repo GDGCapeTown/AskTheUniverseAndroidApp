@@ -12,12 +12,14 @@ import com.appspot.asktheuniverseaquestion.questionService.model.AskTheUniverseA
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -25,6 +27,7 @@ import android.widget.Toast;
 
 public class ListQuestionsActivity extends Activity {
 	private QuestionsDataAdapter mListAdapter;
+	ListView listView = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +35,58 @@ public class ListQuestionsActivity extends Activity {
 		setContentView(R.layout.activity_list_questions);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-		ListView listView = (ListView) findViewById(R.id.questions_list_view);
+		listView = (ListView) findViewById(R.id.questions_list_view);
 		mListAdapter = new QuestionsDataAdapter((Application) this.getApplicationContext());
 		listView.setAdapter(mListAdapter);
+	}
+	
+	
+	@Override
+	protected void onStart(){
+		super.onStart();
+		
+		Log.d("DEBUG", "onstart of ListQuestionActivity called");
+		AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> getAndDisplayQuestions =
+	            new AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> () {
+	                @Override
+	                protected AskTheUniverseAQuestionQuestionCollection doInBackground(Integer... integers) {
+	                    // Retrieve service handle.
+	                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
+
+	                    try {
+	                    	Log.d("DEBUG", "run async api call");
+	                    	QuestionService.QuestionServiceOperations getQuestionsCommand = apiServiceHandle.questionService();
+	                    	AskTheUniverseAQuestionQuestionCollection questions = getQuestionsCommand.getAllQuestions().execute();
+	                        return questions;
+	                    } catch (IOException e) {
+	                    	e.printStackTrace();
+	                    }
+	                    
+	                    Log.d("DEBUG", "async returning null");
+	                    return null;
+	                }
+
+	                @Override
+	                protected void onPostExecute(AskTheUniverseAQuestionQuestionCollection questions) {
+	                	displayQuestions(questions);
+	                }
+	            };
+		
+		listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+			public void onItemClick(AdapterView parent, View v, int position, long id){
+				AskTheUniverseAQuestionQuestion question = mListAdapter.getItem(position);
+				Bundle bundle = new Bundle();
+				
+				Log.d("DEBUG", "questionId from listview callback is: " + question.getId());
+				bundle.putLong("questionId", question.getId());
+				bundle.putString("questionText", question.getQuestion());
+				
+				Intent i = new Intent(ListQuestionsActivity.this, com.example.asktheuniverse.AnswerQuestionActivity.class);
+				i.putExtras(bundle);
+				
+				startActivity(i);
+			}
+		});
 		
 		Log.d("DEBUG","oncreate.");
 		getAndDisplayQuestions.execute();
@@ -85,37 +137,15 @@ public class ListQuestionsActivity extends Activity {
         }
     }
 	
-	AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> getAndDisplayQuestions =
-            new AsyncTask<Integer, Void, AskTheUniverseAQuestionQuestionCollection> () {
-                @Override
-                protected AskTheUniverseAQuestionQuestionCollection doInBackground(Integer... integers) {
-                    // Retrieve service handle.
-                    QuestionService apiServiceHandle = AppConstants.getApiServiceHandle();
-
-                    try {
-                    	Log.d("DEBUG", "run async api call");
-                    	QuestionService.QuestionServiceOperations getQuestionsCommand = apiServiceHandle.questionService();
-                    	AskTheUniverseAQuestionQuestionCollection questions = getQuestionsCommand.getAllQuestions().execute();
-                        return questions;
-                    } catch (IOException e) {
-                    	Log.d("DEBUG", e.getStackTrace().toString());
-                    }
-                    
-                    Log.d("DEBUG", "async returning null");
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(AskTheUniverseAQuestionQuestionCollection questions) {
-                    if (questions!=null) {
-                        displayQuestions(questions);
-                    } else {
-                    }
-                }
-            };
-	
 	private void displayQuestions(AskTheUniverseAQuestionQuestionCollection questions) {
 		Log.d("DEBUG","displayQuestions called");
-	    mListAdapter.replaceData(questions);
+		if (questions == null){
+			Toast t = Toast.makeText(this, "Failed to fetch questions, please try again.", Toast.LENGTH_LONG);
+    		t.show();
+    		this.finish();
+		}
+		else{
+			mListAdapter.replaceData(questions);
+		}
 	}
 }

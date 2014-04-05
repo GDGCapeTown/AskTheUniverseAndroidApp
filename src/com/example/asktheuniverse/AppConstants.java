@@ -21,7 +21,7 @@ public class AppConstants {
         // Use a builder to help formulate the API request.
 		QuestionService.Builder askTheUniverse = new QuestionService.Builder(AppConstants.HTTP_TRANSPORT,
                 AppConstants.JSON_FACTORY,null);
-		askTheUniverse.setRootUrl("http://10.0.2.2:8080/_ah/api/");
+		askTheUniverse.setRootUrl("http://10.0.2.226:8080/_ah/api/");
 		
 		//disable gzip when local testing, dev_appserver expects non gzip. works in the cloud though.
         askTheUniverse.setGoogleClientRequestInitializer(new QuestionServiceRequestInitializer(){
